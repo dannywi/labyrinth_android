@@ -27,10 +27,13 @@ public class LabyrinthView extends SurfaceView implements SurfaceHolder.Callback
     private final Paint textPaint = new Paint();
 
     private final Bitmap ballBitmap;
-    private float ballX = 50f;
-    private float ballY = 50f;
+    //    private float ballX = 50f;
+    //    private float ballY = 50f;
+    private Ball ball;
     private float canvasWidth = 500f;
     private float canvasHeight = 500f;
+
+    private Map map;
 
     public LabyrinthView(Context context) {
         super(context);
@@ -106,11 +109,15 @@ public class LabyrinthView extends SurfaceView implements SurfaceHolder.Callback
                 sensorValues[i.ordinal()] =
                         sensorValues[i.ordinal()] * ALPHA + event.values[i.ordinal()] * (1f - ALPHA);
 
-            ballX += -sensorValues[Jiku.X.ordinal()] * ACCEL_WEIGHT;
-            ballY += sensorValues[Jiku.Y.ordinal()] * ACCEL_WEIGHT;
+            if (ball != null) {
+                float ballX = -sensorValues[Jiku.X.ordinal()] * ACCEL_WEIGHT;
+                float ballY = sensorValues[Jiku.Y.ordinal()] * ACCEL_WEIGHT;
 
-            ballX = Math.max(0, Math.min(ballX, canvasWidth - ballBitmap.getWidth()));
-            ballY = Math.max(0, Math.min(ballY, canvasHeight - ballBitmap.getHeight()));
+                //ballX = Math.max(0, Math.min(ballX, canvasWidth - ballBitmap.getWidth()));
+                //ballY = Math.max(0, Math.min(ballY, canvasHeight - ballBitmap.getHeight()));
+
+                ball.move(ballX, ballY);
+            }
         }
 
         @Override
@@ -153,9 +160,18 @@ public class LabyrinthView extends SurfaceView implements SurfaceHolder.Callback
     public void drawLabyrinth(final Canvas canvas) {
         canvasWidth = canvas.getWidth();
         canvasHeight = canvas.getHeight();
+        int blockSize = ballBitmap.getHeight();
 
         canvas.drawColor(Color.BLACK);
-        canvas.drawBitmap(ballBitmap, ballX, ballY, paint);
+
+        if (map == null)
+            map = new Map((int) canvasWidth, (int) canvasHeight, blockSize);
+        if (ball == null)
+            ball = new Ball(ballBitmap, blockSize, blockSize, map);
+
+        map.draw(canvas);
+        //canvas.drawBitmap(ballBitmap, ballX, ballY, paint);
+        ball.draw(canvas);
 
         final float lineHeight = TEXT_SIZE + 10f;
         Float firstLinePos = 150f;
